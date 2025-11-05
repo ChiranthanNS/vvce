@@ -1,9 +1,46 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BusLocation } from '../lib/supabase';
 import { MapPin, Navigation, Clock, RefreshCw } from 'lucide-react';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyB7QfhYhlG2bJxPboMFdptyXiNDsFwbKF0';
 const BUS_MARKER_ICON = 'https://maps.google.com/mapfiles/kml/shapes/bus.png';
+
+declare global {
+  interface Window {
+    google: any;
+  }
+}
+
+let googleMapsLoader: Promise<void> | null = null;
+
+function loadGoogleMapsScript() {
+  if (googleMapsLoader) return googleMapsLoader;
+
+  googleMapsLoader = new Promise<void>((resolve, reject) => {
+    if (window.google && window.google.maps) {
+      resolve();
+      return;
+    }
+
+    const existingScript = document.getElementById('google-maps-script');
+    if (existingScript) {
+      existingScript.addEventListener('load', () => resolve(), { once: true });
+      existingScript.addEventListener('error', (event) => reject(event), { once: true });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.id = 'google-maps-script';
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = (event) => reject(event);
+    document.body.appendChild(script);
+  });
+
+  return googleMapsLoader;
+}
 
 export default function BusTrackingPage() {
   const [busLocation, setBusLocation] = useState<BusLocation>({
@@ -17,6 +54,9 @@ export default function BusTrackingPage() {
   });
   const [loading, setLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const mapRef = useRef<HTMLDivElement | null>(null);
+  const markerRef = useRef<any>(null);
+  const mapInstanceRef = useRef<any>(null);
 
   useEffect(() => {
     setLoading(false);
@@ -26,6 +66,61 @@ export default function BusTrackingPage() {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    loadGoogleMapsScript()
+      .then(() => {
+        if (!isMounted || !mapRef.current) return;
+
+        const center = {
+          lat: Number(busLocation.latitude),
+          lng: Number(busLocation.longitude),
+        };
+
+        const mapInstance = new window.google.maps.Map(mapRef.current, {
+          center,
+          zoom: 15,
+          disableDefaultUI: false,
+        });
+
+        const marker = new window.google.maps.Marker({
+          position: center,
+          map: mapInstance,
+          icon: {
+            url: BUS_MARKER_ICON,
+            scaledSize: new window.google.maps.Size(48, 48),
+          },
+          title: 'Bus Location',
+        });
+
+        mapInstanceRef.current = mapInstance;
+        markerRef.current = marker;
+      })
+      .catch((error) => {
+        console.error('Error loading Google Maps:', error);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const center = {
+      lat: Number(busLocation.latitude),
+      lng: Number(busLocation.longitude),
+    };
+
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setCenter(center);
+    }
+
+    if (markerRef.current) {
+      markerRef.current.setPosition(center);
+    }
+  }, [busLocation]);
 
   const updateTimestamp = () => {
     setBusLocation({
@@ -41,11 +136,6 @@ export default function BusTrackingPage() {
 
   const getGoogleMapsUrl = () => {
     return `https://www.google.com/maps?q=${busLocation.latitude},${busLocation.longitude}&z=15`;
-  };
-
-  const getStaticMapUrl = () => {
-    const encodedIcon = encodeURIComponent(BUS_MARKER_ICON);
-    return `https://maps.googleapis.com/maps/api/staticmap?center=${busLocation.latitude},${busLocation.longitude}&zoom=15&size=600x400&maptype=roadmap&markers=icon:${encodedIcon}%7C${busLocation.latitude},${busLocation.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
   };
 
   if (loading) {
@@ -117,11 +207,7 @@ export default function BusTrackingPage() {
           </div>
 
           <div className="relative">
-            <img
-              src={getStaticMapUrl()}
-              alt="Bus Location"
-              className="w-full h-[400px] sm:h-[500px] object-cover"
-            />
+            <div ref={mapRef} className="w-full h-[400px] sm:h-[500px]" />
             <div className="absolute bottom-4 left-4 right-4">
               <div className="bg-white rounded-lg shadow-lg p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
