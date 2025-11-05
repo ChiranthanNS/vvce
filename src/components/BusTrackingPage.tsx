@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { BusLocation } from '../lib/supabase';
 import { MapPin, Navigation, Clock, RefreshCw } from 'lucide-react';
 
+const GOOGLE_MAPS_API_KEY = 'AIzaSyB7QfhYhlG2bJxPboMFdptyXiNDsFwbKF0';
+const BUS_MARKER_ICON = 'https://maps.google.com/mapfiles/kml/shapes/bus.png';
+
 export default function BusTrackingPage() {
   const [busLocation, setBusLocation] = useState<BusLocation>({
     id: '1',
@@ -41,7 +44,8 @@ export default function BusTrackingPage() {
   };
 
   const getStaticMapUrl = () => {
-    return `https://maps.geoapify.com/v1/staticmap?style=osm-carto&width=600&height=400&center=lonlat:${busLocation.longitude},${busLocation.latitude}&zoom=14&marker=lonlat:${busLocation.longitude},${busLocation.latitude};type:material;color:%23ff3421;size:large;icon:bus;icontype:awesome&apiKey=1a4dd7a639d04d59b4d5e3e607ad0174`;
+    const encodedIcon = encodeURIComponent(BUS_MARKER_ICON);
+    return `https://maps.googleapis.com/maps/api/staticmap?center=${busLocation.latitude},${busLocation.longitude}&zoom=15&size=600x400&maptype=roadmap&markers=icon:${encodedIcon}%7C${busLocation.latitude},${busLocation.longitude}&key=${GOOGLE_MAPS_API_KEY}`;
   };
 
   if (loading) {
