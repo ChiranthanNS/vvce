@@ -4,6 +4,8 @@ import { MapPin, Navigation, Clock, RefreshCw } from 'lucide-react';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyB7QfhYhlG2bJxPboMFdptyXiNDsFwbKF0';
 const BUS_MARKER_ICON = 'https://maps.google.com/mapfiles/kml/shapes/bus.png';
+const CAMPUS_COORDINATES = { lat: 12.336565, lng: 76.618745 };
+const CITY_BUS_STAND_COORDINATES = { lat: 12.3085653, lng: 76.6538304 };
 
 declare global {
   interface Window {
@@ -54,9 +56,12 @@ export default function BusTrackingPage() {
   });
   const [loading, setLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [routeSummary, setRouteSummary] = useState({ distance: '', duration: '' });
   const mapRef = useRef<HTMLDivElement | null>(null);
   const markerRef = useRef<any>(null);
   const mapInstanceRef = useRef<any>(null);
+  const directionsServiceRef = useRef<any>(null);
+  const directionsRendererRef = useRef<any>(null);
 
   useEffect(() => {
     setLoading(false);
@@ -95,8 +100,22 @@ export default function BusTrackingPage() {
           title: 'Bus Location',
         });
 
+        const directionsService = new window.google.maps.DirectionsService();
+        const directionsRenderer = new window.google.maps.DirectionsRenderer({
+          suppressMarkers: true,
+          polylineOptions: {
+            strokeColor: '#10b981',
+            strokeWeight: 5,
+          },
+        });
+        directionsRenderer.setMap(mapInstance);
+
         mapInstanceRef.current = mapInstance;
         markerRef.current = marker;
+        directionsServiceRef.current = directionsService;
+        directionsRendererRef.current = directionsRenderer;
+
+        requestRoute();
       })
       .catch((error) => {
         console.error('Error loading Google Maps:', error);
@@ -106,6 +125,33 @@ export default function BusTrackingPage() {
       isMounted = false;
     };
   }, []);
+
+  const requestRoute = () => {
+    if (!directionsServiceRef.current || !directionsRendererRef.current) return;
+
+    directionsServiceRef.current.route(
+      {
+        origin: CAMPUS_COORDINATES,
+        destination: CITY_BUS_STAND_COORDINATES,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      },
+      (result: any, status: string) => {
+        if (status === window.google.maps.DirectionsStatus.OK && result) {
+          directionsRendererRef.current.setDirections(result);
+
+          const leg = result.routes?.[0]?.legs?.[0];
+          if (leg) {
+            setRouteSummary({
+              distance: leg.distance?.text ?? '',
+              duration: leg.duration?.text ?? '',
+            });
+          }
+        } else {
+          console.error('Directions request failed due to', status);
+        }
+      }
+    );
+  };
 
   useEffect(() => {
     const center = {
@@ -216,6 +262,11 @@ export default function BusTrackingPage() {
                     <p className="font-mono text-sm font-medium text-gray-800">
                       {Number(busLocation.latitude).toFixed(6)}, {Number(busLocation.longitude).toFixed(6)}
                     </p>
+                    {routeSummary.distance && routeSummary.duration && (
+                      <p className="text-xs text-gray-500">
+                        Route to City Bus Stand: {routeSummary.distance} · {routeSummary.duration} (driving)
+                      </p>
+                    )}
                   </div>
                   <a
                     href={getGoogleMapsUrl()}
