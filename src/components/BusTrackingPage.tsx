@@ -1,11 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { BusLocation } from '../lib/supabase';
-import { MapPin, Navigation, Clock, RefreshCw } from 'lucide-react';
+import { MapPin, Navigation, Clock, RefreshCw, Bus, AlertCircle, CloudRain, Timer } from 'lucide-react';
+
+import AIChatbot from './AIChatbot';
+import { APP_CONTEXT, getCurrentWeather } from '../lib/appContext';
+import { busSchedules, getWeatherDelay, calculateArrivalTime } from '../lib/busSchedules';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyB7QfhYhlG2bJxPboMFdptyXiNDsFwbKF0';
 const BUS_MARKER_ICON = 'https://maps.google.com/mapfiles/kml/shapes/bus.png';
 const CAMPUS_COORDINATES = { lat: 12.336565, lng: 76.618745 };
 const CITY_BUS_STAND_COORDINATES = { lat: 12.3085653, lng: 76.6538304 };
+const VBC_BUS_ORIGIN = { lat: 12.335278, lng: 76.618389 }; // 12°20'07.0"N 76°37'06.2"E
+const VBC_BUS_DESTINATION = { lat: 12.342222, lng: 76.627278 }; // 12°20'32.0"N 76°37'38.2"E (approx)
+const EXTRA_BUS_MARKER_COORDINATES = { lat: 12.316171, lng: 76.630502 };
 
 declare global {
   interface Window {
@@ -59,9 +66,11 @@ export default function BusTrackingPage() {
   const [routeSummary, setRouteSummary] = useState({ distance: '', duration: '' });
   const mapRef = useRef<HTMLDivElement | null>(null);
   const markerRef = useRef<any>(null);
+  const vbcMarkerRef = useRef<any>(null);
   const mapInstanceRef = useRef<any>(null);
   const directionsServiceRef = useRef<any>(null);
   const directionsRendererRef = useRef<any>(null);
+  const vbcDirectionsRendererRef = useRef<any>(null);
 
   useEffect(() => {
     setLoading(false);
@@ -100,6 +109,29 @@ export default function BusTrackingPage() {
           title: 'Bus Location',
         });
 
+        const vbcMarker = new window.google.maps.Marker({
+          position: {
+            lat: (VBC_BUS_ORIGIN.lat + VBC_BUS_DESTINATION.lat) / 2,
+            lng: (VBC_BUS_ORIGIN.lng + VBC_BUS_DESTINATION.lng) / 2,
+          },
+          map: mapInstance,
+          icon: {
+            url: 'https://maps.google.com/mapfiles/kml/pal4/icon57.png',
+            scaledSize: new window.google.maps.Size(40, 40),
+          },
+          title: 'VVCE-02(Arriving in 15 mins)',
+        });
+
+        new window.google.maps.Marker({
+          position: EXTRA_BUS_MARKER_COORDINATES,
+          map: mapInstance,
+          icon: {
+            url: BUS_MARKER_ICON,
+            scaledSize: new window.google.maps.Size(42, 42),
+          },
+          title: 'Bus Location (Field Update)',
+        });
+
         const directionsService = new window.google.maps.DirectionsService();
         const directionsRenderer = new window.google.maps.DirectionsRenderer({
           suppressMarkers: true,
@@ -110,12 +142,25 @@ export default function BusTrackingPage() {
         });
         directionsRenderer.setMap(mapInstance);
 
+        const vbcDirectionsRenderer = new window.google.maps.DirectionsRenderer({
+          suppressMarkers: true,
+          polylineOptions: {
+            strokeColor: '#3b82f6',
+            strokeWeight: 4,
+            strokeOpacity: 0.8,
+          },
+        });
+        vbcDirectionsRenderer.setMap(mapInstance);
+
         mapInstanceRef.current = mapInstance;
         markerRef.current = marker;
+        vbcMarkerRef.current = vbcMarker;
         directionsServiceRef.current = directionsService;
         directionsRendererRef.current = directionsRenderer;
+        vbcDirectionsRendererRef.current = vbcDirectionsRenderer;
 
         requestRoute();
+        requestVBCRoute();
       })
       .catch((error) => {
         console.error('Error loading Google Maps:', error);
@@ -148,6 +193,25 @@ export default function BusTrackingPage() {
           }
         } else {
           console.error('Directions request failed due to', status);
+        }
+      }
+    );
+  };
+
+  const requestVBCRoute = () => {
+    if (!directionsServiceRef.current || !vbcDirectionsRendererRef.current) return;
+
+    directionsServiceRef.current.route(
+      {
+        origin: VBC_BUS_ORIGIN,
+        destination: VBC_BUS_DESTINATION,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      },
+      (result: any, status: string) => {
+        if (status === window.google.maps.DirectionsStatus.OK && result) {
+          vbcDirectionsRendererRef.current.setDirections(result);
+        } else {
+          console.error('VBC directions request failed due to', status);
         }
       }
     );
@@ -193,6 +257,8 @@ export default function BusTrackingPage() {
   }
 
   const timeSinceUpdate = Math.floor((Date.now() - new Date(lastUpdate).getTime()) / 1000);
+  const weather = getCurrentWeather();
+  const weatherDelay = getWeatherDelay(weather);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
@@ -206,6 +272,13 @@ export default function BusTrackingPage() {
             <RefreshCw className="w-5 h-5" />
             Refresh
           </button>
+        </div>
+
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl px-4 py-3 mb-6 flex items-center gap-3">
+          <Bus className="w-5 h-5 text-yellow-700" />
+          <span className="text-sm sm:text-base">
+            <strong>VVCE-02</strong> bus will be delayed by <strong>5 minutes</strong> due to traffic. Thanks for your patience!
+          </span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -223,6 +296,15 @@ export default function BusTrackingPage() {
               <MapPin className="w-6 h-6 text-green-500" />
             </div>
             <p className="text-xl font-bold text-gray-800">{busLocation.route_name}</p>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-gray-700">Next Arrival</h3>
+              <Timer className="w-6 h-6 text-blue-500" />
+            </div>
+            <p className="text-xl font-bold text-gray-800">VVCE-02 · 15 mins</p>
+            <p className="text-sm text-gray-500">Currently en route to campus</p>
           </div>
 
           <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all">
@@ -283,6 +365,81 @@ export default function BusTrackingPage() {
           </div>
         </div>
 
+        {/* Weather Delay Alert */}
+        {weatherDelay.delay > 0 && (
+          <div className="mt-6 bg-orange-50 border border-orange-200 rounded-xl p-6">
+            <div className="flex items-start gap-3">
+              <div className="bg-orange-500 rounded-full p-2 mt-1">
+                <AlertCircle className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h4 className="font-bold text-orange-800 mb-1">Weather Alert</h4>
+                <p className="text-orange-700 text-sm">
+                  {weatherDelay.reason}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bus Schedules */}
+        <div className="mt-6">
+          <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <Bus className="w-7 h-7 text-green-500" />
+            Bus Schedules
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {busSchedules.map((schedule) => (
+              <div key={schedule.busNumber} className="bg-white rounded-xl shadow-lg p-5 border-l-4 border-green-500">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h4 className="text-xl font-bold text-gray-800">{schedule.busNumber}</h4>
+                    <p className="text-sm text-gray-600">{schedule.route}</p>
+                  </div>
+                  {weatherDelay.delay > 0 && (
+                    <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                      <CloudRain className="w-3 h-3" />
+                      +{weatherDelay.delay} min
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-2 mb-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="w-4 h-4 text-green-600" />
+                    <span className="text-gray-700">Departs:</span>
+                    <span className="font-bold text-gray-800">{schedule.departureTime}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="w-4 h-4 text-green-600" />
+                    <span className="text-gray-700">Arrives:</span>
+                    <span className="font-bold text-gray-800">
+                      {weatherDelay.delay > 0 ? (
+                        <>
+                          <span className="line-through text-gray-400">{schedule.arrivalTime}</span>
+                          {' '}
+                          <span className="text-orange-600">{calculateArrivalTime(schedule, weatherDelay.delay)}</span>
+                        </>
+                      ) : (
+                        schedule.arrivalTime
+                      )}
+                    </span>
+                  </div>
+                </div>
+                <div className="border-t border-gray-200 pt-3">
+                  <p className="text-xs text-gray-600 mb-2 font-medium">Route Stops:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {schedule.stops.map((stop, idx) => (
+                      <span key={idx} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                        {stop}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="mt-6 bg-green-50 border border-green-200 rounded-xl p-6">
           <div className="flex items-start gap-3">
             <div className="bg-green-500 rounded-full p-2 mt-1">
@@ -299,6 +456,9 @@ export default function BusTrackingPage() {
             </div>
           </div>
         </div>
+        
+        {/* AI Chatbot */}
+        <AIChatbot context={APP_CONTEXT} />
       </div>
     </div>
   );

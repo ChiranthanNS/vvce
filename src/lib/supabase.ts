@@ -80,6 +80,116 @@ const mockData: Record<string, any[]> = {
       image_url: '',
       created_at: new Date().toISOString()
     },
+    {
+      id: '9',
+      name: 'Paneer Butter Masala',
+      description: 'Chef\'s Special - Creamy paneer in rich tomato gravy',
+      price: 80,
+      category: 'lunch',
+      available: true,
+      image_url: '',
+      created_at: new Date().toISOString(),
+      is_special: true,
+      is_today_special: true
+    },
+    {
+      id: '10',
+      name: 'Chicken Biryani',
+      description: 'Hot Favorite - Aromatic rice with tender chicken',
+      price: 120,
+      category: 'lunch',
+      available: true,
+      image_url: '',
+      created_at: new Date().toISOString(),
+      is_special: true,
+      is_best_seller: true
+    },
+    {
+      id: '11',
+      name: 'Hot Soup',
+      description: 'Perfect for cold weather - Mixed veg soup',
+      price: 40,
+      category: 'snacks',
+      available: true,
+      image_url: '',
+      created_at: new Date().toISOString(),
+      weather_tag: 'cold'
+    },
+    {
+      id: '12',
+      name: 'Masala Tea',
+      description: 'Hot and spicy tea blend',
+      price: 15,
+      category: 'beverages',
+      available: true,
+      image_url: '',
+      created_at: new Date().toISOString(),
+      weather_tag: 'cold'
+    },
+    {
+      id: '13',
+      name: 'Ice Cream',
+      description: 'Beat the heat with vanilla ice cream',
+      price: 25,
+      category: 'beverages',
+      available: true,
+      image_url: '',
+      created_at: new Date().toISOString(),
+      weather_tag: 'hot'
+    },
+    {
+      id: '14',
+      name: 'Fresh Juice',
+      description: 'Refreshing mixed fruit juice',
+      price: 30,
+      category: 'beverages',
+      available: true,
+      image_url: '',
+      created_at: new Date().toISOString(),
+      weather_tag: 'hot'
+    },
+    {
+      id: '15',
+      name: 'Idli Vada',
+      description: 'Morning Special - Soft idli with crispy vada',
+      price: 40,
+      category: 'breakfast',
+      available: true,
+      image_url: '',
+      created_at: new Date().toISOString(),
+      time_tag: 'morning'
+    },
+    {
+      id: '16',
+      name: 'Veg Fried Rice',
+      description: 'Most Selling - Tasty fried rice with vegetables',
+      price: 70,
+      category: 'lunch',
+      available: true,
+      image_url: '',
+      created_at: new Date().toISOString(),
+      is_best_seller: true
+    },
+    {
+      id: '17',
+      name: 'Samosa',
+      description: 'Crispy pastry with spiced potato filling',
+      price: 20,
+      category: 'snacks',
+      available: true,
+      image_url: '',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: '18',
+      name: 'Maggi',
+      description: 'Classic instant noodles',
+      price: 35,
+      category: 'snacks',
+      available: true,
+      image_url: '',
+      created_at: new Date().toISOString()
+    },
   ],
   classrooms: [
     {
@@ -171,6 +281,11 @@ export interface CanteenItem {
   available: boolean;
   image_url: string;
   created_at: string;
+  is_special?: boolean;
+  is_today_special?: boolean;
+  is_best_seller?: boolean;
+  weather_tag?: 'hot' | 'cold';
+  time_tag?: 'morning' | 'lunch' | 'evening' | 'dinner';
 }
 
 export interface Order {

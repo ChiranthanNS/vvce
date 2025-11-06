@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase, Classroom, TimetableSlot } from '../lib/supabase';
-import { Upload, Search, Clock, User, BookOpen, Building } from 'lucide-react';
+import { Upload, Search, Clock, User, BookOpen, Building, MessageSquare, Send } from 'lucide-react';
+import AIChatbot from './AIChatbot';
+import { APP_CONTEXT } from '../lib/appContext';
 
 interface ClassroomWithSlots extends Classroom {
   currentSlot?: TimetableSlot;
@@ -9,7 +11,6 @@ interface ClassroomWithSlots extends Classroom {
 
 export default function ClassroomPage() {
   const [classrooms, setClassrooms] = useState<ClassroomWithSlots[]>([]);
-  const [timetableSlots, setTimetableSlots] = useState<TimetableSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showUpload, setShowUpload] = useState(false);
@@ -23,6 +24,10 @@ export default function ClassroomPage() {
     courseName: '',
     professorName: ''
   });
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackType, setFeedbackType] = useState<'complaint' | 'comment'>('complaint');
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -30,20 +35,17 @@ export default function ClassroomPage() {
 
   const fetchData = async () => {
     try {
-      const [classroomsRes, slotsRes] = await Promise.all([
-        supabase.from('classrooms').select('*').order('room_number'),
-        supabase.from('timetable_slots').select('*')
-      ]);
-
-      if (classroomsRes.error) throw classroomsRes.error;
-      if (slotsRes.error) throw slotsRes.error;
+      const classroomsResult = await supabase.from('classrooms').select('*').order('room_number');
+      const slotsResult = await supabase.from('timetable_slots').select('*');
+      const classroomsData = classroomsResult.data;
+      const slotsData = slotsResult.data;
 
       const now = new Date();
       const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
       const currentTime = now.toTimeString().slice(0, 5);
 
-      const classroomsWithStatus = (classroomsRes.data || []).map(classroom => {
-        const currentSlot = (slotsRes.data || []).find(slot => {
+      const classroomsWithStatus = (classroomsData || []).map(classroom => {
+        const currentSlot = (slotsData || []).find((slot: TimetableSlot) => {
           const matchesRoom = slot.classroom_id === classroom.id;
           const matchesDay = slot.day_of_week.toLowerCase() === currentDay;
           const isInTimeRange = slot.start_time <= currentTime && slot.end_time >= currentTime;
@@ -58,7 +60,6 @@ export default function ClassroomPage() {
       });
 
       setClassrooms(classroomsWithStatus);
-      setTimetableSlots(slotsRes.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -108,6 +109,23 @@ export default function ClassroomPage() {
     }
   };
 
+  const handleFeedbackSubmit = () => {
+    if (!feedbackText.trim()) {
+      alert('Please enter your feedback');
+      return;
+    }
+    
+    // In a real app, this would save to database
+    console.log('Feedback submitted:', { type: feedbackType, text: feedbackText });
+    setFeedbackSubmitted(true);
+    
+    setTimeout(() => {
+      setFeedbackSubmitted(false);
+      setShowFeedback(false);
+      setFeedbackText('');
+    }, 2000);
+  };
+
   const filteredClassrooms = classrooms.filter(classroom =>
     classroom.room_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
     classroom.building.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -131,13 +149,22 @@ export default function ClassroomPage() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h2 className="text-3xl font-bold text-gray-800">Classroom Availability</h2>
-          <button
-            onClick={() => setShowUpload(true)}
-            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all flex items-center gap-2 font-medium"
-          >
-            <Upload className="w-5 h-5" />
-            Add Timetable
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowFeedback(true)}
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-all flex items-center gap-2 font-medium"
+            >
+              <MessageSquare className="w-5 h-5" />
+              Feedback
+            </button>
+            <button
+              onClick={() => setShowUpload(true)}
+              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all flex items-center gap-2 font-medium"
+            >
+              <Upload className="w-5 h-5" />
+              Add Timetable
+            </button>
+          </div>
         </div>
 
         <div className="mb-6">
@@ -376,6 +403,86 @@ export default function ClassroomPage() {
           </div>
         </div>
       )}
+
+      {/* Feedback/Complaint Form */}
+      {showFeedback && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6">
+            {feedbackSubmitted ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">Thank You!</h3>
+                <p className="text-gray-600">Your feedback has been submitted successfully</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-2xl font-bold text-gray-800">Submit Feedback</h3>
+                  <button
+                    onClick={() => setShowFeedback(false)}
+                    className="text-gray-500 hover:text-gray-700 text-2xl"
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                    <div className="flex gap-4">
+                      <button
+                        onClick={() => setFeedbackType('complaint')}
+                        className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+                          feedbackType === 'complaint'
+                            ? 'bg-red-500 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        Complaint
+                      </button>
+                      <button
+                        onClick={() => setFeedbackType('comment')}
+                        className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+                          feedbackType === 'comment'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        Comment
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {feedbackType === 'complaint' ? 'Describe your complaint' : 'Share your comment'}
+                    </label>
+                    <textarea
+                      value={feedbackText}
+                      onChange={(e) => setFeedbackText(e.target.value)}
+                      rows={5}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                      placeholder={feedbackType === 'complaint' ? 'Tell us what went wrong...' : 'Share your thoughts...'}
+                    />
+                  </div>
+                  <button
+                    onClick={handleFeedbackSubmit}
+                    className="w-full bg-green-500 text-white py-3 rounded-lg font-bold text-lg hover:bg-green-600 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Send className="w-5 h-5" />
+                    Submit {feedbackType === 'complaint' ? 'Complaint' : 'Comment'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* AI Chatbot */}
+      <AIChatbot context={APP_CONTEXT} />
     </div>
   );
 }
