@@ -148,18 +148,18 @@ Student Support:
 
 // Weather conditions (mock data - replace with actual weather API)
 export function getCurrentWeather(): { temp: number; condition: string; suggestion: string } {
-  const month = new Date().getMonth();
-  const isCold = month >= 10 || month <= 2; // Nov-Feb
-  
+  const temp = 27;
+  const isCold = temp <= 20;
+
   if (isCold) {
     return {
-      temp: 18,
+      temp,
       condition: 'Cold',
       suggestion: 'Perfect weather for hot food! Try our Hot Soup, Masala Tea, or Chicken Curry.'
     };
   } else {
     return {
-      temp: 27,
+      temp,
       condition: 'Warm',
       suggestion: 'Pleasant weather outside! Treat yourself to Fresh Juice, Ice Cream, or a Cold Coffee.'
     };
