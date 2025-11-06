@@ -159,9 +159,9 @@ export function getCurrentWeather(): { temp: number; condition: string; suggesti
     };
   } else {
     return {
-      temp: 32,
-      condition: 'Hot',
-      suggestion: 'Beat the heat! Try our Fresh Juice, Ice Cream, Cold Coffee, or Fresh Salad.'
+      temp: 27,
+      condition: 'Warm',
+      suggestion: 'Pleasant weather outside! Treat yourself to Fresh Juice, Ice Cream, or a Cold Coffee.'
     };
   }
 }
