@@ -273,6 +273,7 @@ export default function CanteenPage() {
   const weatherBasedItems = items.filter(item => 
     weather.condition.toLowerCase() === 'cold' ? item.weather_tag === 'cold' : item.weather_tag === 'hot'
   );
+  const temperatureDisplay = weather.condition.toLowerCase() === 'warm' ? '18°C - 27°C' : `${weather.temp}°C`;
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white pb-20">
@@ -327,7 +328,7 @@ export default function CanteenPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Weather</p>
-                <p className="text-lg font-bold text-gray-800">{weather.temp}°C - {weather.condition}</p>
+                <p className="text-lg font-bold text-gray-800">{temperatureDisplay} · {weather.condition}</p>
               </div>
             </div>
           </div>
