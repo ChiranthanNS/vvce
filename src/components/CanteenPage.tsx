@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, CanteenItem } from '../lib/supabase';
-import { ShoppingCart, X, Plus, Minus, Clock, Star, TrendingUp, CloudRain, Sun, Coffee, Users, Timer, UtensilsCrossed } from 'lucide-react';
+import { ShoppingCart, X, Plus, Minus, Clock, Star, TrendingUp, CloudRain, Sun, Coffee, Users, Timer, UtensilsCrossed, ArrowLeft, History } from 'lucide-react';
 import AIChatbot from './AIChatbot';
 import { APP_CONTEXT, getCurrentWeather } from '../lib/appContext';
 
@@ -17,7 +17,12 @@ interface CartItem extends CanteenItem {
   quantity: number;
 }
 
-export default function CanteenPage() {
+interface CanteenPageProps {
+  onNavigateToHistory: () => void;
+  onBack: () => void;
+}
+
+export default function CanteenPage({ onNavigateToHistory, onBack }: CanteenPageProps) {
   const [items, setItems] = useState<CanteenItem[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +39,8 @@ export default function CanteenPage() {
   const [studentName, setStudentName] = useState('');
   const [studentId, setStudentId] = useState('');
   const [pickupTime, setPickupTime] = useState('');
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   useEffect(() => {
     fetchItems();
@@ -72,23 +79,43 @@ export default function CanteenPage() {
     }
   };
 
+  const showToastNotification = (message: string) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
   const addToCart = (item: CanteenItem) => {
     const existingItem = cart.find(i => i.id === item.id);
     if (existingItem) {
       setCart(cart.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i));
+      showToastNotification(`${item.name} quantity updated in cart`);
     } else {
       setCart([...cart, { ...item, quantity: 1 }]);
+      showToastNotification(`${item.name} added to cart`);
     }
   };
 
   const updateQuantity = (itemId: string, change: number) => {
-    setCart(cart.map(item => {
-      if (item.id === itemId) {
-        const newQuantity = item.quantity + change;
-        return newQuantity > 0 ? { ...item, quantity: newQuantity } : item;
+    setCart(prevCart => {
+      const updatedCart = prevCart.map(item => {
+        if (item.id === itemId) {
+          const newQuantity = item.quantity + change;
+          return { ...item, quantity: Math.max(0, newQuantity) };
+        }
+        return item;
+      });
+      
+      // Check if item was removed (quantity became 0)
+      const removedItem = prevCart.find(item => item.id === itemId);
+      const updatedItem = updatedCart.find(item => item.id === itemId);
+      
+      if (removedItem && updatedItem && updatedItem.quantity === 0) {
+        showToastNotification(`${removedItem.name} removed from cart`);
       }
-      return item;
-    }).filter(item => item.quantity > 0));
+      
+      return updatedCart.filter(item => item.quantity > 0);
+    });
   };
 
   const removeFromCart = (itemId: string) => {
@@ -276,21 +303,31 @@ export default function CanteenPage() {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white pb-20">
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold text-gray-800">Canteen Menu</h2>
-          <button
-            onClick={() => setShowCart(true)}
-            className="relative bg-green-500 text-white p-3 rounded-full shadow-lg hover:bg-green-600 transition-all"
-          >
-            <ShoppingCart className="w-6 h-6" />
-            {getTotalItems() > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">
-                {getTotalItems()}
-              </span>
-            )}
-          </button>
+      {/* Header with Back Button */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={onBack}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <ArrowLeft className="w-6 h-6 text-gray-600" />
+              </button>
+              <h1 className="text-2xl font-bold text-gray-800">Canteen Menu</h1>
+            </div>
+            <button
+              onClick={onNavigateToHistory}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            >
+              <History className="w-5 h-5 text-gray-600" />
+              <span className="text-gray-700 font-medium">History</span>
+            </button>
+          </div>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-6">
 
         {/* Busy Hours & Wait Time Info */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -352,14 +389,45 @@ export default function CanteenPage() {
                       </div>
                       <h4 className="text-xl font-bold text-gray-800 mb-1">{item.name}</h4>
                       <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                      {(item.calories || item.protein) && (
+                        <div className="flex gap-3 mb-2 text-xs">
+                          {item.calories && <span className="bg-blue-50 px-2 py-1 rounded">🔥 {item.calories} cal</span>}
+                          {item.protein && <span className="bg-green-50 px-2 py-1 rounded">💪 {item.protein}g protein</span>}
+                        </div>
+                      )}
                       <span className="text-2xl font-bold text-green-600">₹{item.price}</span>
                     </div>
-                    <button
-                      onClick={() => addToCart(item)}
-                      className="ml-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all font-medium whitespace-nowrap"
-                    >
-                      Add to Cart
-                    </button>
+                    {(() => {
+                      const cartItem = cart.find(i => i.id === item.id);
+                      if (cartItem) {
+                        return (
+                          <div className="flex items-center gap-2 ml-4">
+                            <button
+                              onClick={() => updateQuantity(item.id, -1)}
+                              className="bg-gray-200 p-1 rounded-full hover:bg-gray-300"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                            <span className="font-bold text-lg w-8 text-center">{cartItem.quantity}</span>
+                            <button
+                              onClick={() => updateQuantity(item.id, 1)}
+                              className="bg-green-500 text-white p-1 rounded-full hover:bg-green-600"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <button
+                            onClick={() => addToCart(item)}
+                            className="ml-4 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all font-medium whitespace-nowrap"
+                          >
+                            Add to Cart
+                          </button>
+                        );
+                      }
+                    })()}
                   </div>
                 </div>
               ))}
@@ -383,14 +451,45 @@ export default function CanteenPage() {
                   </div>
                   <h4 className="text-lg font-bold text-gray-800 mb-1">{item.name}</h4>
                   <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                  {(item.calories || item.protein) && (
+                    <div className="flex gap-2 mb-2 text-xs">
+                      {item.calories && <span className="bg-blue-50 px-2 py-1 rounded">🔥 {item.calories} cal</span>}
+                      {item.protein && <span className="bg-green-50 px-2 py-1 rounded">💪 {item.protein}g protein</span>}
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
                     <span className="text-xl font-bold text-green-600">₹{item.price}</span>
-                    <button
-                      onClick={() => addToCart(item)}
-                      className="bg-green-500 text-white px-3 py-1.5 rounded-lg hover:bg-green-600 transition-all text-sm font-medium"
-                    >
-                      Add
-                    </button>
+                    {(() => {
+                      const cartItem = cart.find(i => i.id === item.id);
+                      if (cartItem) {
+                        return (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => updateQuantity(item.id, -1)}
+                              className="bg-gray-200 p-1 rounded-full hover:bg-gray-300"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                            <span className="font-bold text-lg w-8 text-center">{cartItem.quantity}</span>
+                            <button
+                              onClick={() => updateQuantity(item.id, 1)}
+                              className="bg-green-500 text-white p-1 rounded-full hover:bg-green-600"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <button
+                            onClick={() => addToCart(item)}
+                            className="bg-green-500 text-white px-3 py-1.5 rounded-lg hover:bg-green-600 transition-all text-sm font-medium"
+                          >
+                            Add
+                          </button>
+                        );
+                      }
+                    })()}
                   </div>
                 </div>
               ))}
@@ -411,14 +510,45 @@ export default function CanteenPage() {
                 <div key={item.id} className="bg-white rounded-lg shadow p-3 hover:shadow-md transition-all">
                   <h5 className="font-bold text-gray-800 text-sm mb-1">{item.name}</h5>
                   <p className="text-xs text-gray-600 mb-2 line-clamp-2">{item.description}</p>
+                  {(item.calories || item.protein) && (
+                    <div className="flex gap-1 mb-2 text-xs">
+                      {item.calories && <span className="bg-blue-50 px-1 py-0.5 rounded text-xs">🔥 {item.calories}</span>}
+                      {item.protein && <span className="bg-green-50 px-1 py-0.5 rounded text-xs">💪 {item.protein}g</span>}
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-bold text-green-600">₹{item.price}</span>
-                    <button
-                      onClick={() => addToCart(item)}
-                      className="bg-green-500 text-white p-1.5 rounded hover:bg-green-600 transition-all"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
+                    {(() => {
+                      const cartItem = cart.find(i => i.id === item.id);
+                      if (cartItem) {
+                        return (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => updateQuantity(item.id, -1)}
+                              className="bg-gray-200 p-1 rounded hover:bg-gray-300"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="font-bold text-sm w-6 text-center">{cartItem.quantity}</span>
+                            <button
+                              onClick={() => updateQuantity(item.id, 1)}
+                              className="bg-green-500 text-white p-1 rounded hover:bg-green-600"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <button
+                            onClick={() => addToCart(item)}
+                            className="bg-green-500 text-white p-1.5 rounded hover:bg-green-600 transition-all"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        );
+                      }
+                    })()}
                   </div>
                 </div>
               ))}
@@ -450,15 +580,46 @@ export default function CanteenPage() {
               </div>
               <div className="p-4">
                 <h3 className="text-xl font-bold text-gray-800 mb-1">{item.name}</h3>
-                <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+                <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                {(item.calories || item.protein) && (
+                  <div className="flex gap-4 mb-3 text-xs text-gray-500">
+                    {item.calories && <span className="bg-blue-50 px-2 py-1 rounded">🔥 {item.calories} cal</span>}
+                    {item.protein && <span className="bg-green-50 px-2 py-1 rounded">💪 {item.protein}g protein</span>}
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
                   <span className="text-2xl font-bold text-green-600">₹{item.price}</span>
-                  <button
-                    onClick={() => addToCart(item)}
-                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all font-medium"
-                  >
-                    Add to Cart
-                  </button>
+                  {(() => {
+                    const cartItem = cart.find(i => i.id === item.id);
+                    if (cartItem) {
+                      return (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => updateQuantity(item.id, -1)}
+                            className="bg-gray-200 p-1 rounded-full hover:bg-gray-300"
+                          >
+                            <Minus className="w-4 h-4" />
+                          </button>
+                          <span className="font-bold text-lg w-8 text-center">{cartItem.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.id, 1)}
+                            className="bg-green-500 text-white p-1 rounded-full hover:bg-green-600"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <button
+                          onClick={() => addToCart(item)}
+                          className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all font-medium"
+                        >
+                          Add to Cart
+                        </button>
+                      );
+                    }
+                  })()}
                 </div>
               </div>
             </div>
@@ -590,6 +751,29 @@ export default function CanteenPage() {
                 {isProcessingPayment ? 'Processing...' : 'Proceed to Payment'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Cart Button */}
+      {getTotalItems() > 0 && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+          <button
+            onClick={() => setShowCart(true)}
+            className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3 transition-all"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            <span className="font-medium">{getTotalItems()} items</span>
+            <span className="bg-green-600 px-2 py-1 rounded-full text-sm">₹{getTotalAmount()}</span>
+          </button>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-50">
+          <div className="bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg">
+            {toastMessage}
           </div>
         </div>
       )}

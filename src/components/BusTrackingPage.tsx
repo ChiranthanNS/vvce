@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { BusLocation } from '../lib/supabase';
-import { MapPin, Navigation, Clock, RefreshCw, Bus, AlertCircle, CloudRain, Timer } from 'lucide-react';
+import { MapPin, Navigation, Clock, RefreshCw, Bus, AlertCircle, CloudRain, Timer, ArrowLeft } from 'lucide-react';
 
 import AIChatbot from './AIChatbot';
 import { APP_CONTEXT, getCurrentWeather } from '../lib/appContext';
@@ -51,7 +51,11 @@ function loadGoogleMapsScript() {
   return googleMapsLoader;
 }
 
-export default function BusTrackingPage() {
+interface BusTrackingPageProps {
+  onBack: () => void;
+}
+
+export default function BusTrackingPage({ onBack }: BusTrackingPageProps) {
   const [busLocation, setBusLocation] = useState<BusLocation>({
     id: '1',
     bus_number: 'VVCE-01',
@@ -262,9 +266,23 @@ export default function BusTrackingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
+      {/* Header with Back Button */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <ArrowLeft className="w-6 h-6 text-gray-600" />
+            </button>
+            <h1 className="text-2xl font-bold text-gray-800">Bus Tracking</h1>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold text-gray-800">Bus Tracking</h2>
           <button
             onClick={refreshLocation}
             className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all flex items-center gap-2 font-medium"

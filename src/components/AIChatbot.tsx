@@ -221,23 +221,32 @@ function generateRuleBasedResponse(input: string, _context: string): string {
     return 'Your order has been successfully placed! 🎉\n\nYou can view your order details in your order history. If you have a specific order ID, I can help you track it. The canteen will notify you when your order is ready for pickup.';
   }
 
+  if (lowerInput.includes('history') || (lowerInput.includes('order') && lowerInput.includes('past'))) {
+    return '📋 Order History Features:\n\n✅ View all your past orders with complete details\n📊 See nutritional info (calories & protein) for each order\n💰 Track payment status and amounts\n⏰ Review pickup times and order references\n📱 Access from the History button on canteen page\n\nYour order history includes everything: items, quantities, prices, and nutritional totals!';
+  }
+
+  // Nutritional queries
+  if (lowerInput.includes('calorie') || lowerInput.includes('protein') || lowerInput.includes('nutrition')) {
+    return '🔥 Nutritional Information Now Available!\n\nEvery menu item now shows:\n📊 Calories (energy content)\n💪 Protein content in grams\n\nHighest Protein Items:\n• Chicken Biryani: 25g protein, 520 cal\n• Paneer Butter Masala: 20g protein, 450 cal\n• Paneer Kathi Roll: 18g protein, 420 cal\n\nLow Calorie Options:\n• Masala Tea: 80 cal, 2g protein\n• Fresh Juice: 110 cal, 1g protein\n• Fresh Lime Soda: 120 cal, 0g protein\n\nCheck the canteen page - all items display nutrition info with 🔥 and 💪 badges!';
+  }
+
   // Canteen-related queries
   if (lowerInput.includes('special') || lowerInput.includes('today') || lowerInput.includes('dish')) {
-    return '🍽️ Today\'s Specials at the canteen:\n\n⭐ Chef\'s Special: Paneer Butter Masala - ₹80\n🔥 Hot Favorite: Chicken Biryani - ₹120\n☕ Morning Special: Masala Dosa - ₹50\n🌟 Most Selling: Veg Fried Rice - ₹70\n\nBusy Hours: 12:00 PM - 2:00 PM & 5:00 PM - 7:00 PM\nEstimated wait time: 10-15 minutes\n\nWant to order something? Head to the Canteen page! 😊';
+    return '🍽️ Today\'s Specials at the canteen:\n\n⭐ Chef\'s Special: Paneer Butter Masala - ₹80 (450 cal, 20g protein)\n🔥 Hot Favorite: Chicken Biryani - ₹120 (520 cal, 25g protein)\n\n🌟 Most Selling Items:\n• Veg Fried Rice - ₹70 (380 cal, 12g protein)\n• Chicken Biryani - ₹120 (520 cal, 25g protein)\n\nBusy Hours: 12:00 PM - 2:00 PM & 5:00 PM - 7:00 PM\nEstimated wait time: 10-15 minutes\n\nAll items now show calories and protein! Use +/- buttons to adjust quantities. Want to order? Head to the Canteen page! 😊';
   }
 
   if (lowerInput.includes('weather') && lowerInput.includes('food')) {
     const season = (new Date().getMonth() >= 10 || new Date().getMonth() <= 2) ? 'winter' : 'summer';
     
     if (season === 'winter') {
-      return '🌨️ Perfect weather for hot comfort food!\n\nRecommended items:\n🍜 Hot Soup - ₹40\n☕ Masala Tea - ₹15\n🍲 Chicken Curry with Roti - ₹90\n🔥 Maggi (Hot) - ₹35';
+      return '🌨️ Perfect weather for hot comfort food!\n\nRecommended items:\n🍜 Hot Soup - ₹40 (150 cal, 5g protein)\n☕ Masala Tea - ₹15 (80 cal, 2g protein)\n🔥 Maggi (Hot) - ₹35 (310 cal, 9g protein)\n\nAll items have quantity controls - use +/- buttons to adjust!';
     } else {
-      return '☀️ Beat the heat with these refreshing options!\n\nRecommended items:\n🥤 Fresh Juice - ₹30\n🍦 Ice Cream - ₹25\n🥗 Fresh Salad - ₹45\n🍹 Cold Coffee - ₹40';
+      return '☀️ Beat the heat with these refreshing options!\n\nRecommended items:\n🥤 Fresh Juice - ₹30 (110 cal, 1g protein)\n🍦 Ice Cream - ₹25 (200 cal, 4g protein)\n🍹 Cold Coffee - ₹65 (250 cal, 8g protein)\n\nAll items show nutritional info and have quantity controls!';
     }
   }
 
   if (lowerInput.includes('breakfast') || (lowerInput.includes('morning') && lowerInput.includes('food'))) {
-    return '🌅 Breakfast Suggestions (Available 7 AM - 11 AM):\n\n🥞 Idli Vada - ₹40\n🍳 Masala Dosa - ₹50\n🥖 Bread Omelette - ₹35\n☕ Coffee/Tea - ₹15\n🥤 Fresh Juice - ₹30';
+    return '🌅 Breakfast Suggestions (Available 7 AM - 11 AM):\n\n🥞 Idli Vada - ₹40 (280 cal, 9g protein)\n🍳 Masala Dosa - ₹60 (320 cal, 8g protein)\n☕ Masala Tea - ₹15 (80 cal, 2g protein)\n🥤 Fresh Juice - ₹30 (110 cal, 1g protein)\n\nAll items have +/- quantity controls for easy ordering!';
   }
 
   if (lowerInput.includes('price') || lowerInput.includes('cost') || lowerInput.includes('budget')) {
@@ -260,11 +269,11 @@ function generateRuleBasedResponse(input: string, _context: string): string {
 
   // General app info
   if (lowerInput.includes('help') || lowerInput.includes('what can you do')) {
-    return 'Great question! I\'m Zero, and I can help you with lots of things! 🌟\n\n🍽️ **Canteen:**\n• Browse menu & today\'s specials\n• Place orders\n• Get food suggestions based on weather/time\n• Check busy hours & wait times\n\n🚌 **Bus Tracking:**\n• View all bus schedules\n• Check weather-based delays\n• Track live bus locations\n\n📚 **Classrooms:**\n• Check room availability\n• View timetables\n• Submit feedback or complaints\n\nJust ask me anything - I\'m here to help! 😊';
+    return 'Great question! I\'m Zero, and I can help you with lots of things! 🌟\n\n🍽️ **Canteen:**\n• Browse menu with nutritional info (calories & protein)\n• Use +/- quantity controls on all items\n• Place orders with Razorpay payment\n• View order history with complete details\n• Get food suggestions based on weather/time\n• Check busy hours & wait times\n\n🚌 **Bus Tracking:**\n• View all bus schedules\n• Check weather-based delays\n• Track live bus locations\n\n📚 **Classrooms:**\n• Check room availability\n• View timetables\n• Submit feedback or complaints\n\n💡 **New Features:**\n• All menu items show calories and protein\n• Smart quantity controls work everywhere\n• Complete order history tracking\n• Nutritional totals for orders\n\nJust ask me anything - I know all the latest updates! 😊';
   }
 
   // Default response
-  return `Hi! I\'m Zero, your VVCE campus assistant! 👋\n\nI\'m here to help you with everything campus-related. You can ask me about:\n\n✨ Bus schedules and live tracking\n✨ Canteen menu, specials & recommendations\n✨ Classroom availability & timetables\n✨ Order status & busy hours\n✨ Weather-based food suggestions\n✨ And much more!\n\nWhat would you like to know? I\'ve got all the details! 😊`;
+  return `Hi! I\'m Zero, your VVCE campus assistant! 👋\n\nI\'m here to help you with everything campus-related. You can ask me about:\n\n✨ Bus schedules and live tracking\n✨ Canteen menu with nutritional info (calories & protein)\n✨ Quantity controls and order history\n✨ Classroom availability & timetables\n✨ Order status & payment tracking\n✨ Weather-based food suggestions\n✨ And much more!\n\n🆕 New Features: All menu items now show calories and protein, plus smart quantity controls work everywhere!\n\nWhat would you like to know? I\'ve got all the latest updates! 😊`;
 }
 
 async function generateAIResponse({

@@ -1,8 +1,8 @@
-import { UtensilsCrossed, DoorOpen, Bus } from 'lucide-react';
+import { UtensilsCrossed, DoorOpen, Bus, History } from 'lucide-react';
 
 interface NavigationProps {
   currentPage: 'canteen' | 'classroom' | 'bus';
-  onPageChange: (page: 'canteen' | 'classroom' | 'bus') => void;
+  onPageChange: (page: 'canteen' | 'classroom' | 'bus' | 'history') => void;
 }
 
 export default function Navigation({ currentPage, onPageChange }: NavigationProps) {

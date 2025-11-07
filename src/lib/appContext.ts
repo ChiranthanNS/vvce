@@ -5,50 +5,62 @@ VVCE Campus Management System
 === CANTEEN SYSTEM ===
 Available Features:
 - Browse menu items by category (breakfast, lunch, snacks, beverages)
-- Add items to cart and place orders
-- View today's specials and recommendations
+- Add items to cart with quantity controls (+/- buttons)
+- View nutritional information (calories and protein) for all items
+- Place orders with Razorpay payment integration
+- View today's specials, most selling items, and weather-based recommendations
 - Check busy hours and estimated wait times
+- Access order history to track past orders
+
+Cart & Ordering Features:
+- Smart quantity controls: Add items and adjust quantities with +/- buttons
+- Works on all menu sections: regular menu, today's specials, most selling, weather-based items
+- Real-time cart updates with total amount calculation
+- Secure payment processing with Razorpay
+- Order confirmation with pickup time and order reference
 
 Busy Hours:
 - Peak Times: 12:00 PM - 2:00 PM (15-20 min wait) and 5:00 PM - 7:00 PM (10-15 min wait)
 - Best Times: 10:00 AM - 11:30 AM, 3:00 PM - 4:30 PM, After 7:30 PM (5 min wait)
 
 Today's Specials:
-- Chef's Special: Paneer Butter Masala - ₹80
-- Hot Favorite: Chicken Biryani - ₹120
-- Morning Special: Masala Dosa - ₹50
-- Most Selling: Veg Fried Rice - ₹70
+- Chef's Special: Paneer Butter Masala - ₹80 (450 cal, 20g protein)
+- Hot Favorite: Chicken Biryani - ₹120 (520 cal, 25g protein)
 
-Menu Items (Sample):
+Most Selling Items:
+- Veg Fried Rice - ₹70 (380 cal, 12g protein)
+- Chicken Biryani - ₹120 (520 cal, 25g protein)
+
+COMPLETE MENU WITH NUTRITIONAL INFO:
+
 Breakfast (7 AM - 11 AM):
-- Idli Vada: ₹40
-- Masala Dosa: ₹50
-- Bread Omelette: ₹35
-- Poha: ₹30
-- Tea/Coffee: ₹15
+- Idli Vada: ₹40 (280 cal, 9g protein)
+- Masala Dosa: ₹60 (320 cal, 8g protein)
 
 Lunch & Dinner:
-- Veg Fried Rice: ₹70
-- Chicken Biryani: ₹120
-- Paneer Butter Masala: ₹80
-- Dal Tadka with Roti: ₹60
-- Full Meal Thali: ₹100
+- Veg Fried Rice: ₹70 (380 cal, 12g protein)
+- Chicken Biryani: ₹120 (520 cal, 25g protein)
+- Paneer Butter Masala: ₹80 (450 cal, 20g protein)
+- Veg Pulao: ₹80 (350 cal, 10g protein)
 
 Snacks:
-- Samosa: ₹20
-- Vada Pav: ₹25
-- Maggi: ₹35
-- Sandwich: ₹40
+- Veg Sandwich: ₹50 (280 cal, 12g protein)
+- Paneer Kathi Roll: ₹70 (420 cal, 18g protein)
+- Crispy Corn Chaat: ₹55 (180 cal, 6g protein)
+- Samosa: ₹20 (160 cal, 4g protein)
+- Maggi: ₹35 (310 cal, 9g protein)
 
 Beverages:
-- Tea/Coffee: ₹15
-- Fresh Juice: ₹30
-- Cold Coffee: ₹40
-- Soft Drinks: ₹20
+- Classic Cold Coffee: ₹65 (250 cal, 8g protein)
+- Fresh Lime Soda: ₹40 (120 cal, 0g protein)
+- Orange Sparkle Cooler: ₹45 (140 cal, 1g protein)
+- Fresh Juice: ₹30 (110 cal, 1g protein)
+- Ice Cream: ₹25 (200 cal, 4g protein)
+- Masala Tea: ₹15 (80 cal, 2g protein)
 
 Weather-based Recommendations:
-Cold Weather: Hot Soup (₹40), Masala Tea (₹15), Chicken Curry (₹90), Hot Maggi (₹35)
-Hot Weather: Fresh Juice (₹30), Ice Cream (₹25), Cold Coffee (₹40), Fresh Salad (₹45)
+Cold Weather: Hot Soup (₹40, 150 cal, 5g protein), Masala Tea (₹15, 80 cal, 2g protein)
+Hot Weather: Fresh Juice (₹30, 110 cal, 1g protein), Ice Cream (₹25, 200 cal, 4g protein)
 
 Time-based Recommendations:
 Morning (7-11 AM): Breakfast items
@@ -117,19 +129,42 @@ Timetable shows:
 
 Users can submit complaints or comments about classrooms directly through the page.
 
-=== ORDER TRACKING ===
-When users place orders:
-- They receive an order confirmation
-- Orders include: student name, student ID, items ordered, total amount, pickup time
-- Payment status is tracked
-- Order status updates: Confirmed → Preparing → Ready → Completed
+=== ORDER TRACKING & HISTORY ===
+Order Placement Process:
+- Add items to cart using +/- quantity controls
+- Proceed to checkout with student details (name, ID, pickup time)
+- Secure payment via Razorpay integration
+- Receive order confirmation with reference number
+- Get estimated wait time and ready time
+
+Order History Features:
+- Access complete order history from canteen page
+- View past orders with full details: items, quantities, prices, nutritional info
+- Track order status: Confirmed → Preparing → Ready → Completed
+- See payment status and order references
+- Review pickup times and total amounts
+- Filter orders by date or status
+
+Order Information Includes:
+- Student name and ID
+- Items ordered with quantities and individual prices
+- Nutritional information (total calories and protein)
+- Total amount paid
+- Pickup time selected
+- Order reference number (e.g., ORD-001, ORD-002)
+- Payment status (Paid/Pending)
+- Order status updates
+- Estimated wait time (15-20 minutes during peak hours)
 
 Example Order Response:
-"Your order has been placed successfully! Order ID: #12345
-Items: 2x Masala Dosa (₹100), 1x Coffee (₹15)
-Total: ₹115
+"Your order has been placed successfully! 🎉
+Order Reference: ORD-045
+Items: 2x Masala Dosa (₹120, 640 cal, 16g protein), 1x Cold Coffee (₹65, 250 cal, 8g protein)
+Total: ₹185 (890 calories, 24g protein)
 Pickup Time: 1:30 PM
+Estimated Wait: 15 minutes
 Status: Confirmed
+Payment: Completed via Razorpay
 You will be notified when your order is ready!"
 
 === GENERAL INFO ===

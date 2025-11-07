@@ -8,7 +8,9 @@ const mockData: Record<string, any[]> = {
       category: 'snacks',
       available: true,
       image_url: '',
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      calories: 280,
+      protein: 12
     },
     {
       id: '2',
@@ -18,7 +20,9 @@ const mockData: Record<string, any[]> = {
       category: 'breakfast',
       available: true,
       image_url: '',
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      calories: 320,
+      protein: 8
     },
     {
       id: '3',
@@ -28,7 +32,9 @@ const mockData: Record<string, any[]> = {
       category: 'lunch',
       available: true,
       image_url: '',
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      calories: 350,
+      protein: 10
     },
     {
       id: '4',
@@ -38,7 +44,9 @@ const mockData: Record<string, any[]> = {
       category: 'snacks',
       available: true,
       image_url: '',
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      calories: 420,
+      protein: 18
     },
     {
       id: '5',
@@ -48,7 +56,9 @@ const mockData: Record<string, any[]> = {
       category: 'snacks',
       available: true,
       image_url: '',
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      calories: 180,
+      protein: 6
     },
     {
       id: '6',
@@ -58,7 +68,9 @@ const mockData: Record<string, any[]> = {
       category: 'beverages',
       available: true,
       image_url: '',
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      calories: 250,
+      protein: 8
     },
     {
       id: '7',
@@ -68,7 +80,9 @@ const mockData: Record<string, any[]> = {
       category: 'beverages',
       available: true,
       image_url: '',
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      calories: 120,
+      protein: 0
     },
     {
       id: '8',
@@ -78,7 +92,9 @@ const mockData: Record<string, any[]> = {
       category: 'beverages',
       available: true,
       image_url: '',
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      calories: 140,
+      protein: 1
     },
     {
       id: '9',
@@ -90,7 +106,9 @@ const mockData: Record<string, any[]> = {
       image_url: '',
       created_at: new Date().toISOString(),
       is_special: true,
-      is_today_special: true
+      is_today_special: true,
+      calories: 450,
+      protein: 20
     },
     {
       id: '10',
@@ -102,7 +120,9 @@ const mockData: Record<string, any[]> = {
       image_url: '',
       created_at: new Date().toISOString(),
       is_special: true,
-      is_best_seller: true
+      is_best_seller: true,
+      calories: 520,
+      protein: 25
     },
     {
       id: '11',
@@ -113,7 +133,9 @@ const mockData: Record<string, any[]> = {
       available: true,
       image_url: '',
       created_at: new Date().toISOString(),
-      weather_tag: 'cold'
+      weather_tag: 'cold',
+      calories: 150,
+      protein: 5
     },
     {
       id: '12',
@@ -124,7 +146,9 @@ const mockData: Record<string, any[]> = {
       available: true,
       image_url: '',
       created_at: new Date().toISOString(),
-      weather_tag: 'cold'
+      weather_tag: 'cold',
+      calories: 80,
+      protein: 2
     },
     {
       id: '13',
@@ -135,7 +159,9 @@ const mockData: Record<string, any[]> = {
       available: true,
       image_url: '',
       created_at: new Date().toISOString(),
-      weather_tag: 'hot'
+      weather_tag: 'hot',
+      calories: 200,
+      protein: 4
     },
     {
       id: '14',
@@ -146,7 +172,9 @@ const mockData: Record<string, any[]> = {
       available: true,
       image_url: '',
       created_at: new Date().toISOString(),
-      weather_tag: 'hot'
+      weather_tag: 'hot',
+      calories: 110,
+      protein: 1
     },
     {
       id: '15',
@@ -157,7 +185,9 @@ const mockData: Record<string, any[]> = {
       available: true,
       image_url: '',
       created_at: new Date().toISOString(),
-      time_tag: 'morning'
+      time_tag: 'morning',
+      calories: 280,
+      protein: 9
     },
     {
       id: '16',
@@ -168,7 +198,9 @@ const mockData: Record<string, any[]> = {
       available: true,
       image_url: '',
       created_at: new Date().toISOString(),
-      is_best_seller: true
+      is_best_seller: true,
+      calories: 380,
+      protein: 12
     },
     {
       id: '17',
@@ -178,7 +210,9 @@ const mockData: Record<string, any[]> = {
       category: 'snacks',
       available: true,
       image_url: '',
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      calories: 160,
+      protein: 4
     },
     {
       id: '18',
@@ -188,7 +222,9 @@ const mockData: Record<string, any[]> = {
       category: 'snacks',
       available: true,
       image_url: '',
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      calories: 310,
+      protein: 9
     },
   ],
   classrooms: [
@@ -286,6 +322,8 @@ export interface CanteenItem {
   is_best_seller?: boolean;
   weather_tag?: 'hot' | 'cold';
   time_tag?: 'morning' | 'lunch' | 'evening' | 'dinner';
+  calories?: number;
+  protein?: number;
 }
 
 export interface Order {

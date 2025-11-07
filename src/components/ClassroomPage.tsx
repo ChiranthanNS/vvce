@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, Classroom, TimetableSlot } from '../lib/supabase';
-import { Upload, Search, Clock, User, BookOpen, Building, MessageSquare, Send } from 'lucide-react';
+import { Upload, Search, Clock, User, BookOpen, Building, MessageSquare, Send, ArrowLeft } from 'lucide-react';
 import AIChatbot from './AIChatbot';
 import { APP_CONTEXT } from '../lib/appContext';
 
@@ -9,7 +9,11 @@ interface ClassroomWithSlots extends Classroom {
   isOccupied: boolean;
 }
 
-export default function ClassroomPage() {
+interface ClassroomPageProps {
+  onBack: () => void;
+}
+
+export default function ClassroomPage({ onBack }: ClassroomPageProps) {
   const [classrooms, setClassrooms] = useState<ClassroomWithSlots[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -146,9 +150,23 @@ export default function ClassroomPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
+      {/* Header with Back Button */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <ArrowLeft className="w-6 h-6 text-gray-600" />
+            </button>
+            <h1 className="text-2xl font-bold text-gray-800">Classroom Availability</h1>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <h2 className="text-3xl font-bold text-gray-800">Classroom Availability</h2>
           <div className="flex gap-2">
             <button
               onClick={() => setShowFeedback(true)}
